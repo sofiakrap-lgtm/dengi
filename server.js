@@ -29,8 +29,17 @@ const DEFAULT_STATE = {
 
 const VALID_USERS = ['nikita', 'sofia', 'aleksey'];
 
-// Карты может создавать только Никита.
-const CARD_CREATOR = 'nikita';
+// Кто может создавать карты.
+// Никита — без ограничений; Алексей — не чаще одной карты в 24 часа.
+const CARD_CREATORS = ['nikita', 'aleksey'];
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Лимит создания карт по пользователю (мс между картами). Если пользователя
+// нет в этом списке — он создаёт карты без ограничений.
+const CARD_RATE_LIMITS = {
+  aleksey: DAY_MS, // одна карта в сутки
+};
 
 // Пароли пользователей. Можно переопределить через переменные окружения
 // (PIN_NIKITA / PIN_SOFIA / PIN_ALEKSEY), иначе — простые значения по умолчанию.
@@ -236,7 +245,8 @@ async function handleApi(req, res, urlPath) {
     return sendJson(res, 200, { ok: true, transaction: tx, users: state.users });
   }
 
-  // POST /api/card/create — создать новую карту (только Никита).
+  // POST /api/card/create — создать новую карту.
+  // Никита — без ограничений; Алексей — не чаще одной карты в сутки.
   if (req.method === 'POST' && urlPath === '/api/card/create') {
     const body = await readBody(req);
     const from = String(body.from || '');
@@ -245,9 +255,26 @@ async function handleApi(req, res, urlPath) {
     const emoji = String(body.emoji || '🃏').trim().slice(0, 8) || '🃏';
     const color = String(body.color || 'violet').trim().slice(0, 16);
 
-    if (from !== CARD_CREATOR) {
-      return sendJson(res, 403, { error: 'Карты может создавать только Никита' });
+    if (!CARD_CREATORS.includes(from)) {
+      return sendJson(res, 403, { error: 'У вас нет прав на создание карт' });
     }
+
+    // Ограничение по частоте (для Алексея — одна карта в 24 часа).
+    const limit = CARD_RATE_LIMITS[from];
+    if (limit) {
+      const lastAt = state.cards.reduce(
+        (max, c) => (c.createdBy === from ? Math.max(max, c.createdAt || 0) : max),
+        0
+      );
+      const elapsed = Date.now() - lastAt;
+      if (lastAt && elapsed < limit) {
+        const hoursLeft = Math.ceil((limit - elapsed) / (60 * 60 * 1000));
+        return sendJson(res, 429, {
+          error: 'Можно создавать только одну карту в сутки. Попробуйте через ' + hoursLeft + ' ч.',
+        });
+      }
+    }
+
     if (!title) {
       return sendJson(res, 400, { error: 'Введите название карты' });
     }
@@ -258,8 +285,8 @@ async function handleApi(req, res, urlPath) {
       description,
       emoji,
       color,
-      owner: CARD_CREATOR,
-      createdBy: CARD_CREATOR,
+      owner: from,
+      createdBy: from,
       createdAt: Date.now(),
       history: [], // { from, to, ts }
     };

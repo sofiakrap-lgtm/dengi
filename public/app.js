@@ -7,7 +7,9 @@
     aleksey: { name: 'Алексей', letter: 'А', cls: 'avatar-aleksey' },
   };
   const ORDER = ['sofia', 'nikita', 'aleksey'];
-  const CARD_CREATOR = 'nikita';
+  // Кто может создавать карты (Алексей — не чаще одной в сутки, лимит на сервере).
+  const CARD_CREATORS = ['nikita', 'aleksey'];
+  const canCreateCards = (u) => CARD_CREATORS.includes(u);
 
   const EMOJIS = ['🃏', '⭐', '🎁', '💎', '🏆', '❤️', '🔥', '🎮', '🍀', '👑'];
   const COLORS = ['violet', 'blue', 'pink', 'green', 'gold', 'red'];
@@ -172,8 +174,14 @@
 
   // --- Контролы создания карты (значок + цвет) ---
   function buildCardCreateControls() {
-    $('card-create').classList.toggle('hidden', me !== CARD_CREATOR);
-    if (me !== CARD_CREATOR) return;
+    $('card-create').classList.toggle('hidden', !canCreateCards(me));
+    if (!canCreateCards(me)) return;
+
+    // Подсказка о суточном лимите (для Алексея).
+    const hint = $('card-create-hint');
+    if (hint) {
+      hint.classList.toggle('hidden', me !== 'aleksey');
+    }
 
     const ep = $('card-emoji-pick');
     ep.innerHTML = EMOJIS.map(
@@ -345,7 +353,7 @@
     const allEl = $('all-cards');
     allEl.innerHTML = cards.length
       ? cards.slice().reverse().map((c) => cardHtml(c, false)).join('')
-      : '<div class="cards-empty">Карт пока нет.' + (me === CARD_CREATOR ? ' Создай первую!' : '') + '</div>';
+      : '<div class="cards-empty">Карт пока нет.' + (canCreateCards(me) ? ' Создай первую!' : '') + '</div>';
 
     // Кнопки «подарить»
     myEl.querySelectorAll('.give-btn').forEach((b) => {

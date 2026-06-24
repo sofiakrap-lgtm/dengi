@@ -116,9 +116,10 @@
     <!-- Карты -->
     <section class="panel hidden" id="panel-cards">
       <div class="cards-scroll">
-        <!-- Создание карты (только Никита) -->
+        <!-- Создание карты (Никита — без лимита, Алексей — 1 раз в сутки) -->
         <form class="card-create hidden" id="card-create">
           <div class="card-create-title">🃏 Новая карта</div>
+          <p class="card-create-hint hidden" id="card-create-hint">Можно создавать одну карту в сутки.</p>
           <input id="card-title" type="text" maxlength="40" placeholder="Название карты" />
           <input id="card-desc" type="text" maxlength="200" placeholder="Описание (необязательно)" />
           <div class="card-emoji-row">
