@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f1220" />
+  <title>Деньги · София и Никита</title>
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%B0%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+
+  <!-- Экран выбора пользователя -->
+  <section id="login" class="login">
+    <div class="login-card">
+      <div class="login-emoji">💰</div>
+      <h1>Кто ты?</h1>
+      <p class="login-sub">Выбери себя, чтобы войти</p>
+      <div class="login-buttons">
+        <button class="user-pick" data-user="sofia">
+          <span class="avatar avatar-sofia">С</span>
+          <span class="user-pick-name">София</span>
+        </button>
+        <button class="user-pick" data-user="nikita">
+          <span class="avatar avatar-nikita">Н</span>
+          <span class="user-pick-name">Никита</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Основное приложение -->
+  <main id="app" class="app hidden">
+    <header class="topbar">
+      <div class="topbar-me">
+        <span class="avatar" id="me-avatar"></span>
+        <div>
+          <div class="topbar-name" id="me-name"></div>
+          <div class="topbar-role">Это ты</div>
+        </div>
+      </div>
+      <button id="switch-user" class="switch-btn">Сменить</button>
+    </header>
+
+    <!-- Балансы -->
+    <section class="balances">
+      <div class="balance-card me">
+        <div class="balance-label" id="bal-me-name">Ты</div>
+        <div class="balance-value"><span id="bal-me">0</span> <span class="cur">D</span></div>
+      </div>
+      <div class="balance-card other">
+        <div class="balance-label" id="bal-other-name">Партнёр</div>
+        <div class="balance-value"><span id="bal-other">0</span> <span class="cur">D</span></div>
+      </div>
+    </section>
+
+    <!-- Вкладки -->
+    <nav class="tabs">
+      <button class="tab active" data-tab="chat">💬 Чат</button>
+      <button class="tab" data-tab="send">💸 Перевод</button>
+      <button class="tab" data-tab="history">📜 История</button>
+    </nav>
+
+    <!-- Чат -->
+    <section class="panel" id="panel-chat">
+      <div class="chat" id="chat"></div>
+      <form class="chat-form" id="chat-form">
+        <input id="chat-input" type="text" placeholder="Сообщение…" autocomplete="off" maxlength="2000" />
+        <button type="submit" class="send-icon" aria-label="Отправить">➤</button>
+      </form>
+    </section>
+
+    <!-- Перевод -->
+    <section class="panel hidden" id="panel-send">
+      <form class="send-form" id="send-form">
+        <div class="send-to">
+          Перевод для: <strong id="send-to-name">—</strong>
+        </div>
+        <label class="field">
+          <span>Сумма (D)</span>
+          <input id="send-amount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0" />
+        </label>
+        <div class="quick">
+          <button type="button" data-q="10">+10</button>
+          <button type="button" data-q="50">+50</button>
+          <button type="button" data-q="100">+100</button>
+        </div>
+        <label class="field">
+          <span>Комментарий (необязательно)</span>
+          <input id="send-note" type="text" maxlength="200" placeholder="За что?" />
+        </label>
+        <button type="submit" class="btn-primary">Отправить деньги</button>
+        <p class="send-msg" id="send-msg"></p>
+      </form>
+    </section>
+
+    <!-- История -->
+    <section class="panel hidden" id="panel-history">
+      <div class="history" id="history"></div>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

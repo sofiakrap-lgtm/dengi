@@ -1,0 +1,13 @@
+{
+  "name": "dengi",
+  "version": "1.0.0",
+  "description": "Обмен деньгами между Софией и Никитой: чат, переводы, история",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "license": "MIT"
+}
