@@ -14,18 +14,38 @@
   <section id="login" class="login">
     <div class="login-card">
       <div class="login-emoji">💰</div>
-      <h1>Кто ты?</h1>
-      <p class="login-sub">Выбери себя, чтобы войти</p>
-      <div class="login-buttons">
-        <button class="user-pick" data-user="sofia">
-          <span class="avatar avatar-sofia">С</span>
-          <span class="user-pick-name">София</span>
-        </button>
-        <button class="user-pick" data-user="nikita">
-          <span class="avatar avatar-nikita">Н</span>
-          <span class="user-pick-name">Никита</span>
-        </button>
+
+      <!-- Шаг 1: выбор пользователя -->
+      <div id="login-pick">
+        <h1>Кто ты?</h1>
+        <p class="login-sub">Выбери себя, чтобы войти</p>
+        <div class="login-buttons">
+          <button class="user-pick" data-user="sofia">
+            <span class="avatar avatar-sofia">С</span>
+            <span class="user-pick-name">София</span>
+          </button>
+          <button class="user-pick" data-user="nikita">
+            <span class="avatar avatar-nikita">Н</span>
+            <span class="user-pick-name">Никита</span>
+          </button>
+          <button class="user-pick" data-user="aleksey">
+            <span class="avatar avatar-aleksey">А</span>
+            <span class="user-pick-name">Алексей</span>
+          </button>
+        </div>
       </div>
+
+      <!-- Шаг 2: ввод пароля -->
+      <form id="login-pass" class="login-pass hidden">
+        <span class="avatar big" id="pass-avatar"></span>
+        <h1 id="pass-name">—</h1>
+        <p class="login-sub">Введи пароль</p>
+        <input id="pass-input" type="password" inputmode="numeric" autocomplete="off"
+               placeholder="Пароль" />
+        <button type="submit" class="btn-primary">Войти</button>
+        <p class="login-err" id="pass-err"></p>
+        <button type="button" class="link-back" id="pass-back">← назад</button>
+      </form>
     </div>
   </section>
 
@@ -48,22 +68,14 @@
       Проверь токен Upstash.
     </div>
 
-    <!-- Балансы -->
-    <section class="balances">
-      <div class="balance-card me">
-        <div class="balance-label" id="bal-me-name">Ты</div>
-        <div class="balance-value"><span id="bal-me">0</span> <span class="cur">D</span></div>
-      </div>
-      <div class="balance-card other">
-        <div class="balance-label" id="bal-other-name">Партнёр</div>
-        <div class="balance-value"><span id="bal-other">0</span> <span class="cur">D</span></div>
-      </div>
-    </section>
+    <!-- Балансы (заполняются динамически) -->
+    <section class="balances" id="balances"></section>
 
     <!-- Вкладки -->
     <nav class="tabs">
       <button class="tab active" data-tab="chat">💬 Чат</button>
       <button class="tab" data-tab="send">💸 Перевод</button>
+      <button class="tab" data-tab="cards">🃏 Карты</button>
       <button class="tab" data-tab="history">📜 История</button>
     </nav>
 
@@ -79,8 +91,9 @@
     <!-- Перевод -->
     <section class="panel hidden" id="panel-send">
       <form class="send-form" id="send-form">
-        <div class="send-to">
-          Перевод для: <strong id="send-to-name">—</strong>
+        <div class="field">
+          <span>Кому</span>
+          <div class="recipients" id="send-recipients"></div>
         </div>
         <label class="field">
           <span>Сумма (D)</span>
@@ -98,6 +111,34 @@
         <button type="submit" class="btn-primary">Отправить деньги</button>
         <p class="send-msg" id="send-msg"></p>
       </form>
+    </section>
+
+    <!-- Карты -->
+    <section class="panel hidden" id="panel-cards">
+      <div class="cards-scroll">
+        <!-- Создание карты (только Никита) -->
+        <form class="card-create hidden" id="card-create">
+          <div class="card-create-title">🃏 Новая карта</div>
+          <input id="card-title" type="text" maxlength="40" placeholder="Название карты" />
+          <input id="card-desc" type="text" maxlength="200" placeholder="Описание (необязательно)" />
+          <div class="card-emoji-row">
+            <span>Значок:</span>
+            <div class="emoji-pick" id="card-emoji-pick"></div>
+          </div>
+          <div class="card-color-row">
+            <span>Цвет:</span>
+            <div class="color-pick" id="card-color-pick"></div>
+          </div>
+          <button type="submit" class="btn-primary">Создать карту</button>
+          <p class="send-msg" id="card-msg"></p>
+        </form>
+
+        <div class="cards-section-title">Мои карты</div>
+        <div class="cards-list" id="my-cards"></div>
+
+        <div class="cards-section-title">Все карты</div>
+        <div class="cards-list" id="all-cards"></div>
+      </div>
     </section>
 
     <!-- История -->
