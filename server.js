@@ -34,8 +34,12 @@ let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
 async function loadState() {
   const parsed = await storage.load();
   if (!parsed) {
-    // Первый запуск — сохраняем начальное состояние.
-    await storage.save(state);
+    // Первый запуск — сохраняем начальное состояние (не падаем при ошибке).
+    try {
+      await storage.save(state);
+    } catch (err) {
+      console.error('Не удалось сохранить начальное состояние:', err.message);
+    }
     return;
   }
   // Подстраховка: гарантируем наличие полей.
@@ -217,13 +221,18 @@ const server = http.createServer(async (req, res) => {
   serveStatic(req, res);
 });
 
-loadState()
+storage
+  .init()
+  .then(loadState)
   .then(() => {
     server.listen(PORT, () => {
       console.log(`Сервер запущен: http://localhost:${PORT} (хранилище: ${storage.backend})`);
     });
   })
   .catch((err) => {
-    console.error('Не удалось загрузить состояние:', err);
-    process.exit(1);
+    // Даже при ошибке поднимаем сервер, чтобы сайт был доступен.
+    console.error('Ошибка при старте:', err.message);
+    server.listen(PORT, () => {
+      console.log(`Сервер запущен (с ошибкой хранилища): http://localhost:${PORT}`);
+    });
   });

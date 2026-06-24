@@ -51,17 +51,34 @@ async function upstashCommand(command) {
   return res.json(); // { result: ... }
 }
 
-async function load() {
-  if (useUpstash) {
-    try {
-      const data = await upstashCommand(['GET', KEY]);
-      return data && data.result ? JSON.parse(data.result) : null;
-    } catch (err) {
-      console.error('Не удалось загрузить из Upstash:', err.message);
-      return null;
-    }
-  }
+// Текущий режим: 'upstash' пока проверка не покажет проблему.
+let mode = useUpstash ? 'upstash' : 'file';
+let note = '';
 
+// Проверяем доступность Upstash при старте. Если токен/URL неверны —
+// не падаем, а переходим на временное файловое хранилище и громко
+// предупреждаем (история не переживёт перезапуск, пока не исправят).
+async function init() {
+  if (mode !== 'upstash') return;
+  try {
+    await upstashCommand(['PING']);
+    console.log('Upstash подключён — данные сохраняются постоянно.');
+  } catch (err) {
+    mode = 'file';
+    note = err.message;
+    console.error('⚠️  ' + err.message);
+    console.error(
+      '⚠️  Временно использую файловое хранилище. История НЕ сохранится ' +
+      'между перезапусками, пока не исправишь токен Upstash!'
+    );
+  }
+}
+
+async function load() {
+  if (mode === 'upstash') {
+    const data = await upstashCommand(['GET', KEY]);
+    return data && data.result ? JSON.parse(data.result) : null;
+  }
   try {
     const raw = fs.readFileSync(DATA_FILE, 'utf8');
     return JSON.parse(raw);
@@ -72,11 +89,21 @@ async function load() {
 
 async function save(state) {
   const json = JSON.stringify(state);
-  if (useUpstash) {
+  if (mode === 'upstash') {
     await upstashCommand(['SET', KEY, json]);
     return;
   }
   fs.writeFileSync(DATA_FILE, JSON.stringify(state, null, 2));
 }
 
-module.exports = { load, save, backend: useUpstash ? 'upstash' : 'file' };
+module.exports = {
+  init,
+  load,
+  save,
+  get backend() {
+    return mode;
+  },
+  get note() {
+    return note;
+  },
+};

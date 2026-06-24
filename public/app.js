@@ -96,6 +96,12 @@
     // Перевод — кому
     $('send-to-name').textContent = USERS[other].name;
 
+    // Предупреждение, если данные не сохраняются постоянно
+    const warn = $('storage-warn');
+    if (warn) {
+      warn.classList.toggle('hidden', !state.storage || state.storage === 'upstash');
+    }
+
     renderChat(state.messages);
     renderHistory(state.transactions);
   }
