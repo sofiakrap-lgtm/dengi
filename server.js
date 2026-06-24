@@ -132,6 +132,7 @@ function publicState() {
     users: state.users,
     messages: state.messages,
     transactions: state.transactions,
+    storage: storage.backend, // 'upstash' = данные сохраняются навсегда
   };
 }
 
