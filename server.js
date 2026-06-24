@@ -9,9 +9,9 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const storage = require('./storage');
 
 const PORT = process.env.PORT || 3000;
-const DATA_FILE = path.join(__dirname, 'data.json');
 const PUBLIC_DIR = path.join(__dirname, 'public');
 
 // --- Начальное состояние ---------------------------------------------------
@@ -29,25 +29,25 @@ const VALID_USERS = ['nikita', 'sofia'];
 
 // --- Хранилище -------------------------------------------------------------
 
-let state = loadState();
+let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
 
-function loadState() {
-  try {
-    const raw = fs.readFileSync(DATA_FILE, 'utf8');
-    const parsed = JSON.parse(raw);
-    // Подстраховка: гарантируем наличие полей.
-    return {
-      users: parsed.users || DEFAULT_STATE.users,
-      messages: Array.isArray(parsed.messages) ? parsed.messages : [],
-      transactions: Array.isArray(parsed.transactions) ? parsed.transactions : [],
-    };
-  } catch (err) {
-    return JSON.parse(JSON.stringify(DEFAULT_STATE));
+async function loadState() {
+  const parsed = await storage.load();
+  if (!parsed) {
+    // Первый запуск — сохраняем начальное состояние.
+    await storage.save(state);
+    return;
   }
+  // Подстраховка: гарантируем наличие полей.
+  state = {
+    users: parsed.users || DEFAULT_STATE.users,
+    messages: Array.isArray(parsed.messages) ? parsed.messages : [],
+    transactions: Array.isArray(parsed.transactions) ? parsed.transactions : [],
+  };
 }
 
-function saveState() {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(state, null, 2));
+async function saveState() {
+  await storage.save(state);
 }
 
 function id() {
@@ -159,7 +159,7 @@ async function handleApi(req, res, urlPath) {
 
     const msg = { id: id(), from, text, ts: Date.now() };
     state.messages.push(msg);
-    saveState();
+    await saveState();
     return sendJson(res, 200, { ok: true, message: msg });
   }
 
@@ -192,7 +192,7 @@ async function handleApi(req, res, urlPath) {
 
     const tx = { id: id(), from, to, amount: amt, note, ts: Date.now() };
     state.transactions.push(tx);
-    saveState();
+    await saveState();
     return sendJson(res, 200, { ok: true, transaction: tx, users: state.users });
   }
 
@@ -216,6 +216,13 @@ const server = http.createServer(async (req, res) => {
   serveStatic(req, res);
 });
 
-server.listen(PORT, () => {
-  console.log(`Сервер запущен: http://localhost:${PORT}`);
-});
+loadState()
+  .then(() => {
+    server.listen(PORT, () => {
+      console.log(`Сервер запущен: http://localhost:${PORT} (хранилище: ${storage.backend})`);
+    });
+  })
+  .catch((err) => {
+    console.error('Не удалось загрузить состояние:', err);
+    process.exit(1);
+  });

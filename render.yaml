@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: dengi
+    runtime: node
+    plan: free
+    buildCommand: ""
+    startCommand: node server.js
+    envVars:
+      # Заполни эти переменные в панели Render значениями из Upstash,
+      # чтобы балансы и история сохранялись между перезапусками.
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false
